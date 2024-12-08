@@ -38,9 +38,21 @@ export default function Home() {
           <div className="space-y-6">
             <Card className="p-4">
               <PromptInput 
-                onPromptSubmit={(prompt) => {
-                  // Handle prompt submission
-                  console.log("New prompt:", prompt);
+                onPromptSubmit={(prompt, generatedText) => {
+                  // Create a new animated object based on the AI response
+                  const newObject = createAnimation({
+                    type: 'sphere',
+                    x: Math.random() * 4 - 2,
+                    y: Math.random() * 4 - 2,
+                    scale: 1,
+                    color: '#' + Math.floor(Math.random()*16777215).toString(16),
+                    animation: {
+                      type: 'bounce',
+                      duration: 2
+                    }
+                  });
+                  setObjects([...objects, newObject]);
+                  setIsPlaying(true);
                 }} 
               />
             </Card>

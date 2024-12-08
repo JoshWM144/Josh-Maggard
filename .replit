@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "postgresql-16"]
+modules = ["nodejs-20", "web", "postgresql-16", "python-3.11"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -8,11 +8,15 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+run = ["sh", "-c", "cd server/ai_service && python3 -m uvicorn main:app --host 0.0.0.0 --port 5001"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3000
 
 [workflows]
 runButton = "Project"
@@ -24,10 +28,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Development Server"
+args = "AI Service"
 
 [[workflows.workflow]]
-name = "Development Server"
+name = "AI Service"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -38,5 +42,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
+args = "cd server/ai_service && python3 -m uvicorn main:app --host 0.0.0.0 --port 5001"
+waitForPort = 5001

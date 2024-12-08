@@ -1,5 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
+import { registerRoutes, setupWebSocket } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import { createServer } from "http";
 
@@ -60,8 +60,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  registerRoutes(app);
   const server = createServer(app);
+  setupWebSocket(server);
+  registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -80,10 +81,16 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Serve the app on port 8000
-  // this serves both the API and the client
-  const PORT = 8000;
+  // Get port from environment or use default
+  const PORT = process.env.PORT || 5000;
   server.listen(PORT, "0.0.0.0", () => {
     log(`serving on port ${PORT}`);
+  }).on('error', (error: any) => {
+    if (error.code === 'EADDRINUSE') {
+      log(`Port ${PORT} is already in use. Please close other applications using this port.`);
+      process.exit(1);
+    } else {
+      throw error;
+    }
   });
 })();

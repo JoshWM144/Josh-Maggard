@@ -61,11 +61,21 @@ async def generate_text(request: PromptRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    logger.info("Starting AI service on port 5001...")
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=5001,
-        log_level="info",
-        reload=True,  # Enable auto-reload for development
-    )
+    try:
+        port = 5001
+        logger.info(f"Starting AI service on port {port}...")
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=port,
+            log_level="info",
+            reload=False  # Disable reload to avoid module import issues
+        )
+    except OSError as e:
+        if "address already in use" in str(e).lower():
+            logger.error(f"Port {port} is already in use. Please ensure no other service is running on this port.")
+            sys.exit(1)
+        raise
+    except Exception as e:
+        logger.error(f"Failed to start server: {str(e)}")
+        raise

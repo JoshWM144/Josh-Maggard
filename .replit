@@ -8,7 +8,11 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "cd server/ai_service && python3 -m uvicorn main:app --host 0.0.0.0 --port 5001"]
+run = ["sh", "-c", "cd server/ai_service && python3 main.py"]
+
+[[ports]]
+localPort = 3000
+externalPort = 3001
 
 [[ports]]
 localPort = 5000
@@ -50,7 +54,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server/ai_service && python3 -m uvicorn main:app --host 0.0.0.0 --port 5001"
+args = "cd server/ai_service && python3 main.py"
 waitForPort = 5001
 
 [[workflows.workflow]]
@@ -66,4 +70,4 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
-waitForPort = 8000
+waitForPort = 5000

@@ -5,6 +5,7 @@ import PromptInput from "../components/PromptInput";
 import AnimationControls from "../components/AnimationControls";
 import ObjectLibrary from "../components/ObjectLibrary";
 import { useState } from "react";
+import { createAnimation } from "../lib/animations";
 
 export default function Home() {
   const [objects, setObjects] = useState<any[]>([]);

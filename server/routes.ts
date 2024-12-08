@@ -33,18 +33,24 @@ export function registerRoutes(app: Express) {
         context: {}
       });
       
-      const generatedText = aiResponse.data.generated_text;
+      const aiData = aiResponse.data;
       
       // Emit the new animation to all clients in the room
       if (req.body.roomId) {
         io.to(req.body.roomId).emit('new-animation', {
           prompt,
           objects,
-          generatedText
+          ...aiData
         });
       }
       
-      res.json({ success: true, generatedText });
+      res.json({ 
+        success: true,
+        generated_text: aiData.generated_text,
+        animation_type: aiData.animation_type,
+        subject: aiData.subject,
+        parameters: aiData.parameters
+      });
     } catch (error) {
       console.error('Error processing animation:', error);
       res.status(500).json({ 

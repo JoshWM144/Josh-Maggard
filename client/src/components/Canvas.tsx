@@ -31,6 +31,7 @@ function Scene({ objects, isPlaying }: CanvasProps) {
       {objects.map((obj) => {
         switch (obj.type) {
           case 'sphere':
+          case 'cell':
             return (
               <mesh key={obj.id} position={[obj.x, obj.y, 0]} scale={obj.scale}>
                 <sphereGeometry args={[1, 32, 32]} />
@@ -48,6 +49,67 @@ function Scene({ objects, isPlaying }: CanvasProps) {
             return (
               <mesh key={obj.id} position={[obj.x, obj.y, 0]} scale={obj.scale} rotation={[0, obj.rotation, 0]}>
                 <coneGeometry args={[1, 2, 32]} />
+                <meshStandardMaterial color={obj.color} />
+              </mesh>
+            );
+          case 'dna':
+            return (
+              <group key={obj.id} position={[obj.x, obj.y, 0]} scale={obj.scale} rotation={[0, obj.rotation, 0]}>
+                <mesh position={[-0.5, 0, 0]}>
+                  <torusGeometry args={[1, 0.2, 16, 100]} />
+                  <meshStandardMaterial color={obj.color} />
+                </mesh>
+                <mesh position={[0.5, 0, 0]}>
+                  <torusGeometry args={[1, 0.2, 16, 100]} />
+                  <meshStandardMaterial color={obj.color} />
+                </mesh>
+              </group>
+            );
+          case 'molecule':
+            return (
+              <group key={obj.id} position={[obj.x, obj.y, 0]} scale={obj.scale}>
+                <mesh>
+                  <sphereGeometry args={[0.5, 32, 32]} />
+                  <meshStandardMaterial color={obj.color} />
+                </mesh>
+                <mesh position={[1, 0, 0]}>
+                  <sphereGeometry args={[0.3, 32, 32]} />
+                  <meshStandardMaterial color={obj.color} />
+                </mesh>
+                <mesh position={[-0.8, 0.8, 0]}>
+                  <sphereGeometry args={[0.3, 32, 32]} />
+                  <meshStandardMaterial color={obj.color} />
+                </mesh>
+              </group>
+            );
+          case 'atom':
+            return (
+              <group key={obj.id} position={[obj.x, obj.y, 0]} scale={obj.scale} rotation={[0, obj.rotation, 0]}>
+                <mesh>
+                  <sphereGeometry args={[0.5, 32, 32]} />
+                  <meshStandardMaterial color={obj.color} />
+                </mesh>
+                <mesh rotation={[0, 0, Math.PI / 3]}>
+                  <torusGeometry args={[1, 0.1, 16, 100]} />
+                  <meshStandardMaterial color={obj.color} />
+                </mesh>
+                <mesh rotation={[Math.PI / 3, 0, 0]}>
+                  <torusGeometry args={[1, 0.1, 16, 100]} />
+                  <meshStandardMaterial color={obj.color} />
+                </mesh>
+              </group>
+            );
+          case 'pyramid':
+            return (
+              <mesh key={obj.id} position={[obj.x, obj.y, 0]} scale={obj.scale} rotation={[0, obj.rotation, 0]}>
+                <coneGeometry args={[1, 1, 4]} />
+                <meshStandardMaterial color={obj.color} />
+              </mesh>
+            );
+          case 'torus':
+            return (
+              <mesh key={obj.id} position={[obj.x, obj.y, 0]} scale={obj.scale} rotation={[0, obj.rotation, 0]}>
+                <torusGeometry args={[1, 0.3, 16, 100]} />
                 <meshStandardMaterial color={obj.color} />
               </mesh>
             );

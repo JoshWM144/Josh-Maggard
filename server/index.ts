@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes, setupWebSocket } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import { createServer } from "http";
+import { AddressInfo } from "net";
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -81,16 +82,50 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Get port from environment or use default
-  const PORT = process.env.PORT || 5000;
-  server.listen(PORT, "0.0.0.0", () => {
-    log(`serving on port ${PORT}`);
-  }).on('error', (error: any) => {
-    if (error.code === 'EADDRINUSE') {
-      log(`Port ${PORT} is already in use. Please close other applications using this port.`);
+  // Get port from environment or use default with retry logic
+  const PORT = parseInt(process.env.PORT || '5000');
+  const MAX_RETRIES = 5;
+  let currentTry = 0;
+  let currentPort = PORT;
+
+  const attemptListen = () => {
+    try {
+      log(`Attempting to start server on port ${currentPort}...`);
+      const listener = server.listen(currentPort, "0.0.0.0")
+        .on('listening', () => {
+          const address = listener.address() as AddressInfo;
+          const actualPort = address.port;
+          log(`Server started successfully on port ${actualPort}`);
+          process.env.MAIN_APP_PORT = actualPort.toString();
+          if (app.get("env") === "development") {
+            log("Running in development mode");
+          }
+        })
+        .on('error', (error: any) => {
+          if (error.code === 'EADDRINUSE') {
+            currentTry++;
+            if (currentTry < MAX_RETRIES) {
+              currentPort++;
+              log(`Port ${currentPort-1} in use, trying port ${currentPort}`);
+              attemptListen();
+            } else {
+              log(`Could not find an available port after ${MAX_RETRIES} retries`);
+              process.exit(1);
+            }
+          } else {
+            log(`Unexpected error: ${error.message}`);
+            throw error;
+          }
+        });
+    } catch (error: any) {
+      log(`Failed to start server: ${error.message}`);
       process.exit(1);
-    } else {
-      throw error;
     }
+  };
+
+  process.on('unhandledRejection', (reason, promise) => {
+    log(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
   });
+
+  attemptListen();
 })();

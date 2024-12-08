@@ -4,6 +4,8 @@ from pydantic import BaseModel
 import uvicorn
 import logging
 import json
+import sys
+import os
 from typing import Dict, Any
 
 # Configure logging
@@ -62,20 +64,34 @@ async def generate_text(request: PromptRequest):
 
 if __name__ == "__main__":
     try:
-        port = 5001
-        logger.info(f"Starting AI service on port {port}...")
-        uvicorn.run(
-            app,
-            host="0.0.0.0",
-            port=port,
-            log_level="info",
-            reload=False  # Disable reload to avoid module import issues
-        )
-    except OSError as e:
-        if "address already in use" in str(e).lower():
-            logger.error(f"Port {port} is already in use. Please ensure no other service is running on this port.")
-            sys.exit(1)
-        raise
+        start_port = int(os.getenv('PORT', '5001'))
+        max_retries = 5
+        current_try = 0
+        port = start_port
+        
+        while current_try < max_retries:
+            try:
+                logger.info(f"Starting AI service on port {port}...")
+                uvicorn.run(
+                    app,
+                    host="0.0.0.0",
+                    port=port,
+                    log_level="info",
+                    reload=False
+                )
+                break
+            except OSError as e:
+                if "address already in use" in str(e).lower():
+                    current_try += 1
+                    if current_try < max_retries:
+                        port += 1
+                        logger.info(f"Port {port-1} in use, trying port {port}")
+                    else:
+                        logger.error("Could not find an available port after maximum retries")
+                        sys.exit(1)
+                else:
+                    logger.error(f"Unexpected error: {str(e)}")
+                    raise
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}")
-        raise
+        sys.exit(1)

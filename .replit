@@ -77,5 +77,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=development npm run db:push && npm run dev"
+args = "NODE_ENV=development npm run dev"
 waitForPort = 5000

@@ -67,10 +67,29 @@ export function registerRoutes(app: Express) {
     
     try {
       // Call Python AI service for text generation
-      const aiResponse = await axios.post(`http://localhost:${process.env.AI_SERVICE_PORT || 5001}/generate`, {
-        prompt: prompt,
-        context: {}
-      });
+      let aiResponse;
+      try {
+        aiResponse = await axios.post(`http://0.0.0.0:${process.env.AI_SERVICE_PORT || 5001}/generate`, {
+          prompt: prompt,
+          context: {}
+        });
+        console.log('AI service response received successfully');
+      } catch (error) {
+        console.error('Error connecting to AI service:', error.message);
+        // Provide fallback behavior
+        aiResponse = { 
+          data: {
+            generated_text: prompt,
+            animation_type: "rotate",
+            subject: "default",
+            parameters: {
+              interactive: true,
+              complexity: "medium",
+              duration: 5
+            }
+          }
+        };
+      }
       
       const aiData = aiResponse.data;
       

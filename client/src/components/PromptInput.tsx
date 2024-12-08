@@ -6,7 +6,7 @@ import { generateTextFromPrompt } from '../lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 interface PromptInputProps {
-  onPromptSubmit: (prompt: string, generatedText: string) => void;
+  onPromptSubmit: (prompt: string, aiResponse: any) => void;
 }
 
 export default function PromptInput({ onPromptSubmit }: PromptInputProps) {
@@ -21,7 +21,7 @@ export default function PromptInput({ onPromptSubmit }: PromptInputProps) {
     setIsLoading(true);
     try {
       const response = await generateTextFromPrompt(prompt);
-      onPromptSubmit(prompt, response.generated_text);
+      onPromptSubmit(prompt, response);
       setPrompt('');
       toast({
         title: "Success",

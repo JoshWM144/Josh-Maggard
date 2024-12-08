@@ -23,25 +23,70 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Simple rule-based text generation as fallback
+# Educational templates for different subjects
 EDUCATIONAL_TEMPLATES: Dict[str, str] = {
-    "default": "This is an interactive {object} that demonstrates {concept}.",
-    "physics": "The {object} shows how {concept} works in physics.",
-    "math": "This {object} helps visualize {concept} in mathematics.",
-    "chemistry": "The {object} represents {concept} in chemical reactions.",
+    "default": {
+        "text": "Creating an interactive {object} to demonstrate {concept}",
+        "animation_type": "rotate"
+    },
+    "physics": {
+        "text": "Simulating {concept} with interactive {object}",
+        "animation_type": "physics"
+    },
+    "biology": {
+        "text": "Visualizing {concept} through a detailed {object} model",
+        "animation_type": "growth"
+    },
+    "chemistry": {
+        "text": "Demonstrating {concept} through molecular {object}",
+        "animation_type": "reaction"
+    },
+    "math": {
+        "text": "Exploring {concept} using {object} visualization",
+        "animation_type": "transform"
+    }
 }
 
-def simple_generate_text(prompt: str) -> str:
-    """Fallback text generation when ML model is not available"""
+SUBJECT_KEYWORDS = {
+    "physics": ["force", "motion", "gravity", "energy", "momentum", "collision"],
+    "biology": ["cell", "organism", "system", "cycle", "photosynthesis", "mitosis"],
+    "chemistry": ["reaction", "molecule", "atom", "bond", "solution"],
+    "math": ["geometry", "equation", "graph", "function", "theorem"]
+}
+
+def identify_subject(prompt: str) -> str:
+    """Identify the educational subject based on keywords in the prompt"""
+    prompt_lower = prompt.lower()
+    for subject, keywords in SUBJECT_KEYWORDS.items():
+        if any(keyword in prompt_lower for keyword in keywords):
+            return subject
+    return "default"
+
+def simple_generate_text(prompt: str) -> dict:
+    """Generate educational animation description and parameters"""
     words = prompt.lower().split()
     
-    # Identify subject area and key concepts
-    subject = next((s for s in ["physics", "math", "chemistry"] if s in words), "default")
-    concept = " ".join(words[-2:]) if len(words) > 2 else "educational concepts"
-    object_type = words[0] if words else "visualization"
-    
+    # Identify subject and key elements
+    subject = identify_subject(prompt)
     template = EDUCATIONAL_TEMPLATES[subject]
-    return template.format(object=object_type, concept=concept)
+    
+    # Extract key concepts and objects
+    concept = " ".join(words[-3:]) if len(words) > 3 else prompt
+    object_type = "model" if subject in ["biology", "chemistry"] else "visualization"
+    
+    # Generate response with animation parameters
+    response = {
+        "generated_text": template["text"].format(object=object_type, concept=concept),
+        "animation_type": template["animation_type"],
+        "subject": subject,
+        "parameters": {
+            "interactive": True,
+            "complexity": "medium",
+            "duration": 5,
+        }
+    }
+    
+    return response
 
 class PromptRequest(BaseModel):
     prompt: str
@@ -54,10 +99,10 @@ async def health_check():
 @app.post("/generate")
 async def generate_text(request: PromptRequest):
     try:
-        logger.info(f"Processing prompt: {request.prompt}")
-        generated_text = simple_generate_text(request.prompt)
-        logger.info("Text generated successfully")
-        return {"generated_text": generated_text}
+        logger.info(f"Processing educational prompt: {request.prompt}")
+        response = simple_generate_text(request.prompt)
+        logger.info(f"Generated response for subject: {response['subject']}")
+        return response
     except Exception as e:
         logger.error(f"Error generating text: {e}")
         raise HTTPException(status_code=500, detail=str(e))

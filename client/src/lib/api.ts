@@ -4,6 +4,13 @@ const API_BASE_URL = '/api';
 
 export interface AIResponse {
   generated_text: string;
+  animation_type: string;
+  subject: string;
+  parameters: {
+    interactive: boolean;
+    complexity: string;
+    duration: number;
+  };
 }
 
 export async function generateTextFromPrompt(prompt: string): Promise<AIResponse> {

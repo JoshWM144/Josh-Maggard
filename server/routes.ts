@@ -28,9 +28,9 @@ export function registerRoutes(app: Express) {
     
     try {
       // Call Python AI service for text generation
-      const aiResponse = await axios.post('http://localhost:5001/generate', {
+      const aiResponse = await axios.post('http://0.0.0.0:5001/generate', {
         prompt: prompt,
-        max_length: 100
+        context: {}
       });
       
       const generatedText = aiResponse.data.generated_text;

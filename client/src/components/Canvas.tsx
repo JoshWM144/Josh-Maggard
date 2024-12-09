@@ -1,53 +1,57 @@
 import { useRef, useEffect } from 'react';
-import * as THREE from 'three';
-import { Canvas as ThreeCanvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { gsap } from 'gsap';
 import { AnimationObject } from '../lib/animations';
+import { gsap } from 'gsap';
 
 interface CanvasProps {
   objects: AnimationObject[];
   isPlaying: boolean;
 }
 
-function Scene({ objects, isPlaying }: CanvasProps) {
-  const groupRef = useRef<THREE.Group>(null);
+export default function Canvas({ objects, isPlaying }: CanvasProps) {
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isPlaying && groupRef.current) {
-      gsap.to(groupRef.current.rotation, {
-        y: Math.PI * 2,
-        duration: 8,
-        ease: 'none',
-        repeat: -1
+    if (!canvasRef.current) return;
+
+    const elements = objects.map((obj) => {
+      const element = document.createElement('div');
+      element.className = 'absolute rounded-full transition-all duration-300';
+      element.style.backgroundColor = obj.color;
+      element.style.width = `${obj.scale * 50}px`;
+      element.style.height = `${obj.scale * 50}px`;
+      element.style.left = `${(obj.x + 2) * 25}%`;
+      element.style.top = `${(obj.y + 2) * 25}%`;
+      return element;
+    });
+
+    elements.forEach(el => canvasRef.current?.appendChild(el));
+
+    if (isPlaying) {
+      elements.forEach((el, i) => {
+        const obj = objects[i];
+        gsap.to(el, {
+          rotation: 360,
+          scale: obj.scale * 1.2,
+          duration: obj.animation?.duration || 2,
+          repeat: -1,
+          ease: "none",
+          yoyo: true
+        });
       });
-    } else if (!isPlaying && groupRef.current) {
-      gsap.killTweensOf(groupRef.current.rotation);
     }
-  }, [isPlaying]);
+
+    return () => {
+      elements.forEach(el => {
+        gsap.killTweensOf(el);
+        el.remove();
+      });
+    };
+  }, [objects, isPlaying]);
 
   return (
-    <group ref={groupRef}>
-      {objects.map((obj) => (
-        <mesh key={obj.id} position={[obj.x, obj.y, 0]} scale={obj.scale} rotation={[0, obj.rotation, 0]}>
-          <sphereGeometry args={[1, 32, 32]} />
-          <meshStandardMaterial color={obj.color} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-export default function Canvas(props: CanvasProps) {
-  return (
-    <div className="relative bg-white rounded-lg shadow-inner" style={{ height: '600px' }}>
-      <ThreeCanvas>
-        <PerspectiveCamera makeDefault position={[0, 0, 10]} />
-        <OrbitControls enableDamping />
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
-        <Scene {...props} />
-      </ThreeCanvas>
-    </div>
+    <div 
+      ref={canvasRef} 
+      className="relative bg-white rounded-lg shadow-inner w-full h-[600px] overflow-hidden"
+    />
   );
 }

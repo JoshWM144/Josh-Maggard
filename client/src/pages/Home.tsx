@@ -38,20 +38,15 @@ export default function Home() {
           <Card className="p-4">
             <PromptInput 
               onPromptSubmit={(prompt, aiResponse) => {
-                // Create animated objects based on the AI response and subject
+                // Create animated element based on the AI response
                 const newObject = createAnimation({
-                  type: aiResponse.subject === 'chemistry' ? 'molecule' : 
-                        aiResponse.subject === 'physics' ? 'cube' : 
-                        aiResponse.subject === 'biology' ? 'cell' : 'sphere',
                   x: Math.random() * 4 - 2,
                   y: Math.random() * 4 - 2,
-                  scale: aiResponse.parameters.complexity === 'high' ? 1.5 : 1,
+                  scale: aiResponse.parameters.complexity === 'high' ? 2 : 1,
                   color: aiResponse.subject === 'physics' ? '#4A90E2' : 
                          aiResponse.subject === 'chemistry' ? '#E24A77' : 
                          aiResponse.subject === 'biology' ? '#50E24A' : '#FFB347',
                   animation: {
-                    type: aiResponse.animation_type === 'physics' ? 'bounce' :
-                          aiResponse.animation_type === 'reaction' ? 'scale' : 'rotate',
                     duration: aiResponse.parameters.duration || 2
                   }
                 });

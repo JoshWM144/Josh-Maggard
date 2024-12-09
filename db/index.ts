@@ -23,14 +23,19 @@ pool.connect((err, client, release) => {
     console.error('Error acquiring client', err.stack);
     return;
   }
-  client.query('SELECT NOW()', (err, result) => {
+  if (client) {
+    client.query('SELECT NOW()', (err, result) => {
+      release();
+      if (err) {
+        console.error('Error executing query', err.stack);
+        return;
+      }
+      console.log('Database connection successful:', result.rows[0]);
+    });
+  } else {
     release();
-    if (err) {
-      console.error('Error executing query', err.stack);
-      return;
-    }
-    console.log('Database connection successful:', result.rows[0]);
-  });
+    console.error('Client is undefined');
+  }
 });
 
 export const db = drizzle(pool, { schema });

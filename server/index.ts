@@ -11,7 +11,6 @@ function log(message: string) {
     second: "2-digit",
     hour12: true,
   });
-
   console.log(`${formattedTime} [express] ${message}`);
 }
 
@@ -49,23 +48,28 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
-
   next();
 });
 
-(async () => {
+// Error handling middleware
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  log(`Error handler caught: ${message}`);
+  res.status(status).json({ message });
+});
+
+async function startServer() {
   try {
     const server = createServer(app);
     
-    // Initialize WebSocket with error handling
+    // Initialize WebSocket
     try {
       setupWebSocket(server);
       log("WebSocket setup completed");
@@ -74,7 +78,7 @@ app.use((req, res, next) => {
       // Continue even if WebSocket fails
     }
 
-    // Register routes with error handling
+    // Register routes
     try {
       registerRoutes(app);
       log("Routes registered successfully");
@@ -83,14 +87,6 @@ app.use((req, res, next) => {
       throw error; // Critical error, can't continue without routes
     }
 
-    // Error handling middleware
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      log(`Error handler caught: ${message}`);
-      res.status(status).json({ message });
-    });
-
     // Setup Vite or static serving
     if (app.get("env") === "development") {
       await setupVite(app, server);
@@ -98,55 +94,57 @@ app.use((req, res, next) => {
       serveStatic(app);
     }
 
-    // Get port from environment or use default with retry logic
+    // Server startup with port retry logic
     const PORT = parseInt(process.env.PORT || '5000');
     const MAX_RETRIES = 5;
     let currentTry = 0;
     let currentPort = PORT;
 
-    const attemptListen = () => {
-      try {
+    const startServerOnPort = () => {
+      return new Promise<void>((resolve, reject) => {
         log(`Attempting to start server on port ${currentPort}...`);
-        const listener = server.listen(currentPort, "0.0.0.0")
-          .on('listening', () => {
-            const address = listener.address() as AddressInfo;
-            const actualPort = address.port;
-            log(`Server started successfully on port ${actualPort}`);
-            process.env.MAIN_APP_PORT = actualPort.toString();
-            if (app.get("env") === "development") {
-              log("Running in development mode");
-            }
-          })
-          .on('error', (error: any) => {
-            if (error.code === 'EADDRINUSE') {
-              currentTry++;
-              if (currentTry < MAX_RETRIES) {
-                currentPort++;
-                log(`Port ${currentPort-1} in use, trying port ${currentPort}`);
-                attemptListen();
-              } else {
-                log(`Could not find an available port after ${MAX_RETRIES} retries`);
-                process.exit(1);
-              }
+        const listener = server.listen(currentPort, "0.0.0.0");
+
+        listener.once('listening', () => {
+          const address = listener.address() as AddressInfo;
+          const actualPort = address.port;
+          log(`Server started successfully on port ${actualPort}`);
+          process.env.MAIN_APP_PORT = actualPort.toString();
+          if (app.get("env") === "development") {
+            log("Running in development mode");
+          }
+          resolve();
+        });
+
+        listener.once('error', (error: any) => {
+          if (error.code === 'EADDRINUSE') {
+            listener.close();
+            currentTry++;
+            if (currentTry < MAX_RETRIES) {
+              currentPort++;
+              log(`Port ${currentPort-1} in use, trying port ${currentPort}`);
+              startServerOnPort().then(resolve).catch(reject);
             } else {
-              log(`Unexpected error: ${error.message}`);
-              throw error;
+              reject(new Error(`Could not find an available port after ${MAX_RETRIES} retries`));
             }
-          });
-      } catch (error: any) {
-        log(`Failed to start server: ${error.message}`);
-        process.exit(1);
-      }
+          } else {
+            reject(error);
+          }
+        });
+      });
     };
 
-    // Handle unhandled promise rejections
-    process.on('unhandledRejection', (reason, promise) => {
-      log(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
-    });
-
-    attemptListen();
-  } catch (error) {
+    await startServerOnPort();
+  } catch (error: any) {
     log(`Critical error during server startup: ${error}`);
     process.exit(1);
   }
-})();
+}
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  log(`Unhandled Rejection at: ${promise}, reason: ${reason}`);
+});
+
+// Start the server
+startServer();

@@ -74,8 +74,8 @@ export function registerRoutes(app: Express) {
           context: {}
         });
         console.log('AI service response received successfully');
-      } catch (error) {
-        console.error('Error connecting to AI service:', error.message);
+      } catch (error: any) {
+        console.error('Error connecting to AI service:', error?.message || 'Unknown error');
         // Provide fallback behavior
         aiResponse = { 
           data: {
@@ -213,7 +213,7 @@ export function registerRoutes(app: Express) {
         .update(educationalContent)
         .set({
           animationConfig: {
-            ...content.animationConfig,
+            ...(content.animationConfig as Record<string, any>),
             objects
           }
         })

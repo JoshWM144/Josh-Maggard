@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import Canvas from "../components/Canvas";
 import PromptInput from "../components/PromptInput";
 import AnimationControls from "../components/AnimationControls";
-import ObjectLibrary from "../components/ObjectLibrary";
 import { useState } from "react";
 import { createAnimation } from "../lib/animations";
 
@@ -36,40 +35,31 @@ export default function Home() {
             />
           </Card>
 
-          <div className="space-y-6">
-            <Card className="p-4">
-              <PromptInput 
-                onPromptSubmit={(prompt, aiResponse) => {
-                  // Create animated objects based on the AI response and subject
-                  const newObject = createAnimation({
-                    type: aiResponse.subject === 'chemistry' ? 'sphere' : 
-                          aiResponse.subject === 'physics' ? 'cube' : 'cone',
-                    x: Math.random() * 4 - 2,
-                    y: Math.random() * 4 - 2,
-                    scale: aiResponse.parameters.complexity === 'high' ? 1.5 : 1,
-                    color: aiResponse.subject === 'physics' ? '#4A90E2' : 
-                           aiResponse.subject === 'chemistry' ? '#E24A77' : 
-                           aiResponse.subject === 'biology' ? '#50E24A' : '#FFB347',
-                    animation: {
-                      type: aiResponse.animation_type === 'physics' ? 'bounce' :
-                            aiResponse.animation_type === 'reaction' ? 'scale' : 'rotate',
-                      duration: aiResponse.parameters.duration || 2
-                    }
-                  });
-                  setObjects([...objects, newObject]);
-                  setIsPlaying(true);
-                }} 
-              />
-            </Card>
-
-            <Card className="p-4">
-              <ObjectLibrary 
-                onObjectSelect={(obj) => {
-                  setObjects([...objects, obj]);
-                }}
-              />
-            </Card>
-          </div>
+          <Card className="p-4">
+            <PromptInput 
+              onPromptSubmit={(prompt, aiResponse) => {
+                // Create animated objects based on the AI response and subject
+                const newObject = createAnimation({
+                  type: aiResponse.subject === 'chemistry' ? 'molecule' : 
+                        aiResponse.subject === 'physics' ? 'cube' : 
+                        aiResponse.subject === 'biology' ? 'cell' : 'sphere',
+                  x: Math.random() * 4 - 2,
+                  y: Math.random() * 4 - 2,
+                  scale: aiResponse.parameters.complexity === 'high' ? 1.5 : 1,
+                  color: aiResponse.subject === 'physics' ? '#4A90E2' : 
+                         aiResponse.subject === 'chemistry' ? '#E24A77' : 
+                         aiResponse.subject === 'biology' ? '#50E24A' : '#FFB347',
+                  animation: {
+                    type: aiResponse.animation_type === 'physics' ? 'bounce' :
+                          aiResponse.animation_type === 'reaction' ? 'scale' : 'rotate',
+                    duration: aiResponse.parameters.duration || 2
+                  }
+                });
+                setObjects([...objects, newObject]);
+                setIsPlaying(true);
+              }} 
+            />
+          </Card>
         </div>
       </main>
     </div>

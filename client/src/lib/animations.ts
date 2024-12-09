@@ -1,6 +1,5 @@
 export interface AnimationObject {
   id: string;
-  type: 'sphere' | 'cube' | 'cone' | 'cell' | 'dna' | 'molecule' | 'atom' | 'pyramid' | 'torus';
   x: number;
   y: number;
   z?: number;

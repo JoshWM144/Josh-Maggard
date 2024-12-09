@@ -50,6 +50,10 @@ args = "AI Service"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Run Tests"
+
 [[workflows.workflow]]
 name = "AI Service"
 author = "agent"
@@ -79,3 +83,17 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "NODE_ENV=development npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Run Tests"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node --experimental-vm-modules node_modules/jest/bin/jest.js"

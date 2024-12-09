@@ -27,22 +27,27 @@ app.add_middleware(
 EDUCATIONAL_TEMPLATES: Dict[str, str] = {
     "default": {
         "text": "Creating an interactive {object} to demonstrate {concept}",
+        "primitive": "sphere",
         "animation_type": "rotate"
     },
     "physics": {
         "text": "Simulating {concept} with interactive {object}",
+        "primitive": "cube",
         "animation_type": "physics"
     },
     "biology": {
         "text": "Visualizing {concept} through a detailed {object} model",
+        "primitive": "sphere",
         "animation_type": "growth"
     },
     "chemistry": {
         "text": "Demonstrating {concept} through molecular {object}",
+        "primitive": "sphere",
         "animation_type": "reaction"
     },
     "math": {
         "text": "Exploring {concept} using {object} visualization",
+        "primitive": "cube",
         "animation_type": "transform"
     }
 }
